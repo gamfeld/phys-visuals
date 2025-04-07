@@ -1,14 +1,32 @@
-//Note: this script relies on the outdated Borland Graphics Interface (BG), bundled with several Borland compilers for DOS operating systems since 1987. I am using SDL_bgi as a replacement (package: libsdl-bgi-dev)
- 
-/*
- * Electric Field Line Model using SDL_bgi
+//Field Lines!
+// Adapted from Robert H. Good's "Classical Electromagnetism" (1999)
+// Draws field lines emanating from 2 charged bodies.
+
+/*********************** TUNABLE PARAMETERS ******************************
  *
- * Adapted from Robert H. Goods "Classical Electromagnetism", 1999
- * 
- * This script draws field lines emanating from 2 charged bodies.
+ * #define CHARGE1_RADIUS 15.0f
+ *   - Radius of the left (stronger) charge.
  *
- * Compile with: g++ Lines.cpp -o lines -lSDL_bgi -lSDL2
- */
+ * #define CHARGE2_RADIUS 10.0f
+ *   - Radius of the right (weaker) charge.
+ *
+ * #define CHARGE2_OFFSET 100.0f
+ *   - Horizontal distance from the first charge to the second.
+ *   - Increasing this spreads the charges apart.
+ *
+ * for (th = M_PI / 16; th < 2 * M_PI; th += M_PI / 8)
+ *   - Angular spacing of initial field lines.
+ *   - Decrease step for more lines (e.g., M_PI / 16 → M_PI / 32).
+ *
+ * Constants to leave as-is unless modifying canvas layout:
+ *   xc = maxx / 3.0f;
+ *   yc = maxy / 2.0f;
+ *   - These center the left charge on the left third of the screen.
+ *   
+ * Controls:
+ * - ESC exits the program (handled via getch()).
+ **************************************************************************/
+
 
 #include <graphics.h>
 #include <math.h>
@@ -63,6 +81,8 @@ int main() {
       r2 = hypot(x, y);
     } while (r12 > 144 && r2 < xc);
   }
+  
+  outtextxy(10, maxy - 30, (char*)"Press 'ESC' to exit");
 
   //Wait for Key press lol
   getch();
