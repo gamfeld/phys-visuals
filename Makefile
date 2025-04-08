@@ -4,7 +4,7 @@ CFLAGS = -Wall -O2
 LIBS = -lSDL_bgi -lSDL2
 
 # Default target builds both executables
-all: field_lines dipole
+all: field_lines dipole charge
 
 field_lines: field_lines.cpp
 	$(CC) $(CFLAGS) field_lines.cpp -o field_lines $(LIBS)
@@ -12,6 +12,9 @@ field_lines: field_lines.cpp
 dipole: dipole.cpp
 	$(CC) $(CFLAGS) dipole.cpp -o dipole $(LIBS)
 
+charge: charge.cpp
+	$(CC) $(CFLAGS) charge.cpp -o charge $(LIBS)
+
 clean:
-	rm -f field_lines dipole
+	rm -f field_lines dipole charge
 
