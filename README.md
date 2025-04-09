@@ -20,14 +20,13 @@ Note: Original scripts relied on the outdated Borland Graphics Interface (BG), b
 ![cover](output-am2.png)
 
 
-
-In that version, I removed the conio.h dependency entirely and instead relied on two things:
+For modern compilers, I transitioned from conio.h and instead have the scripts
+rely on two conditions:
 
 getch() from SDL_bgi:
 The SDL_bgi graphics library provides its own getch()-like function so that you can still pause and wait for a key without using conio.h.
 
 A Custom kbhit() Implementation:
-For non-blocking key detection (similar to conio.h’s kbhit()), we implemented our own version using standard Unix/Linux headers like <poll.h>, <fcntl.h>, and <unistd.h>.
-
+For non-blocking key detection (similar to conio.h’s kbhit()), just used <unistd.h> (standard on linux). 
 
 
