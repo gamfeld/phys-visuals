@@ -1,20 +1,22 @@
-//Relaxation!
-// Adapted from Robert H. Good's "Classical Electromagnetism" (1999)
-// Potential distribution on 2D grid via iteratively averaging values with neighboring points.
-
-/*********************** TUNABLE PARAMETERS ******************************
+/***************************************************************************
+ * Relaxation!
  *
- * Implements discrete relaxation procedure — computing steady-state potential distribution
- * by iteratively solving Laplace's equation on a 2D grid.
+ * Adapted from Robert H. Good's "Classical Electromagnetism" (1999)
+ * 
+ * Graphs potential distribution on a 2D grid via iteratively averaging values
+ * with neighboring points (via Laplace's equation). Potential spreads from
+ * left bound --> interior!
  *
- * - The Grid dimension is determined via user input (an integer Y<21).
- * - Left boundary is maintained at fixed potential of 100 units, while
- *   remaining boundaries initially set to 0 (subject to change)
- * The interior grid points are updated using the finite-difference formula:
- *      V[i][j] = (V[i-1][j] + V[i+1][j] + V[i][j-1] + V[i][j+1]) / 4.0f;   
+ * Grid specifications:
+ *  - The array V is 22x22: 
+ *      - Columns: 0 to 21. Column 0 (left boundary) is fixed at 100 volts;
+ *          column 21 (right boundary) is fixed at 0 volts.
+ *      - Rows: 0 to Y+1, where Y is the number of interior rows (user input, < 21).
+ *          The top boundary (row 0) and bottom boundary (row Y+1) are fixed at 0 volts.
+ *  - Only the interior points (columns 1..20, rows 1..Y) are updated according to:
+ *        V[x][y] = ( V[x-1][y] + V[x+1][y] + V[x][y-1] + V[x][y+1] ) / 4.0
  *
  *  Notes: 
- *  - Grid Dimensions can be determined by user input...
  *  - Increasing grid height (Y) ^ the resolution at the cost of speed
  *  (likewise with boundary values*)
  *  - Only interior points are updated to ensure valid neighbor indices.
@@ -24,72 +26,80 @@
  * Controls:
  * - Press any key to perform one iteration of the relaxation process.
  * - Press 'ESC' to exit.
- *
  **************************************************************************/
 
 #include <iostream>
 #include <graphics.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstdio>
 
-int main(){
-    int gdriver = DETECT, gmode;
-    initgraph(&gdriver, &gmode, nullptr);
-    
-    int n = 0, vxy, Y;
-    char ch = 'd', Ych[21];
-    float V[22][22] = {0};
-    
-    outtextxy(10, 10, (char*)"Enter A number < 21:");
-    std::cin.get(Ych, 21);
-    Y = atoi(Ych);
-    cleardevice();
-    if (Y <= 0 || Y > 20) {
-        Y = 10;
-    }
-    
-    char buffer[80];
-    sprintf(buffer, "Y = %d. Press Enter or Esc.", Y);
-    outtextxy(10, Y + 4, buffer);
-    
-    for (int j = 1; j <= Y; j++){
-        V[0][j] = 100; //*
-        outtextxy(4, j + 1, (char*)"100");
-    }
+// --- Tunable Parameters --- 
+// Graphics constants (adjust these to control spacing)!
+const int CELL_W = 35;    // width of each cell
+const int CELL_H = 15;    // height of each cell
+const int X_OFF  = 30;    // left margin offset (in pixels)
+const int Y_OFF  = 30;    // top margin offset (in pixels)
+// --------------------------
 
-    for (int i = 1; i <= 20; i++){
-        outtextxy(3 * i + 5, 1, (char*)"0");
-        outtextxy(3 * i + 5, Y + 2, (char*)"0");
-    }
-    
-    while (ch != (char)27) {  // ESC
-        for (int i = 1; i < 20; i++){
-            for (int j = 1; j < Y; j++){
-                V[i][j] = (V[i - 1][j] + V[i + 1][j] + V[i][j - 1] + V[i][j + 1]) / 4.0f;
-            }
-        }
+int main() {
+  int gdriver = DETECT, gmode;
+  int x, y, n = 0, Y;
+  char ch = ' ';
+  float V[22][22] = {0};
 
-        vxy = (int)V[10][Y / 2];
-        char buf1[20];
-        sprintf(buf1, "%d", vxy);
-        outtextxy(3 * 10 + 5, (Y / 2) + 1, buf1);
-        
-        moveto(520, 15);
-        lineto(51, 15);
-        lineto(51, 16 * Y + 15);
-        lineto(520, 16 * Y + 15);
-        
-        char buf2[20];
-        sprintf(buf2, "n = %d", n);
-        outtextxy(10, Y + 5, buf2);
-        
-        ch = getch();
-        n++;
+  std::cout << "Enter grid height Y (number of interior rows, integer < 21): "; std::cin >> Y;
+  if (Y <= 0 || Y > 20) {
+    Y = 10;
+  }
+  
+  // Set boundary conditions:
+  // Left boundary (column 0) is fixed at 100 volts (for interior rows 1..Y)
+  for (y = 0; y < 22; y++) {
+    if (y >= 1 && y <= Y)
+      V[0][y] = 100.0f;
+    else
+      V[0][y] = 0.0f;
+    V[21][y] = 0.0f;  // Right boundary always 0
+  }
+  for (x = 0; x < 22; x++) {
+    V[x][0] = 0.0f;         // Top boundary
+    V[x][Y+1] = 0.0f;       // Bottom boundary
+  }
+
+  // Initialize graphics window
+  initgraph(&gdriver, &gmode, nullptr);
+
+  // Main relaxation loop (exit when ESC is pressed)
+  while (ch != 27) {
+    cleardevice(); 
+    char buffer[70];
+    for (y = 0; y < Y+2; y++) {
+      for (x = 0; x < 22; x++) {
+        sprintf(buffer, "%.0f", V[x][y]);
+        outtextxy(X_OFF + x * CELL_W, Y_OFF + y * CELL_H, buffer);
+      }
     }
-    
-    closegraph();
-    return 0;
+    rectangle(X_OFF - 5, Y_OFF - 5, X_OFF + 22 * CELL_W + 5, Y_OFF + (Y+2) * CELL_H + 5);
+
+    sprintf(buffer, "n = %d. Press any key (ESC to exit)", n);
+    outtextxy(X_OFF, Y_OFF + (Y+2) * CELL_H + 10, buffer);
+    ch = getch();
+    n++;
+
+    // Compute one relaxation iteration over interior points only:
+    float newV[22][22] = {0};
+    for (y = 1; y <= Y; y++) {
+      for (x = 1; x <= 20; x++) {
+        newV[x][y] = ( V[x-1][y] + V[x+1][y] + V[x][y-1] + V[x][y+1] ) / 4.0f;
+      }
+    }
+    for (y = 1; y <= Y; y++) {
+      for (x = 1; x <= 20; x++) {
+        V[x][y] = newV[x][y];
+      }
+    }
+  }
+  closegraph();
+  return 0;
 }
-
 

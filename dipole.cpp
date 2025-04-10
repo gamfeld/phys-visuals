@@ -1,26 +1,29 @@
-//Dipole!!
-// Adapted from Robert H. Good's "Classical Electromagnetism" (1999)
-// Time-dependant EF of radiating electric dipole in far field.
-
-/*********************** TUNABLE PARAMETERS ******************************
+/***************************************************************************
+ * Dipole!!
+ *
+ * Adapted from Robert H. Good's "Classical Electromagnetism (1999)
+ *
+ * This program outputs the time-dependant EF of a radiating electric dipole in
+ * a far field, using a parameterized form of the integrated dipole field
+ * equation to compute sin²(theta) as a function of radius (kr), phase (wt), 
+ * and an integration constant (C) - Each value of C traces a field line.
  * 
- * float fr = yc / 11.0f; Radial scaling factor for the entire diagram.
- *   - Increase for more spread-out lines, decrease for tighter packing.
+ * Notes:
+ * Some other parameters you can change:
  *
- * for (C = -0.15f; C <= 1.35f; C += 0.3f); Constants of integration (C) control different field lines.
- *   - Adjust the range or step size for more or fewer lines.
+ * - float fr = yc / 11.0f; Radial scaling factor for the entire diagram.
+ *      - Increase for more spread-out lines, decrease for tighter packing.
  *
- * for (kr = 0.05f; kr <= 10.0f; kr += 0.05f); Radial extent and smoothness of each line.
- *   - Decreasing the step smooths curves; increasing max kr extends them.
+ * - for (C = -0.15f; C <= 1.35f; C += 0.3f); Constants of integration (C) control different field lines.
+ *    - Adjust the range or step size for more or fewer lines.
  *
- * Constants to leave as-is unless modifying canvas layout:
- *   xc = maxx / 2.0f;
- *   yc = maxy / 2.0f;
- *   - Keep these centered (unless plotting multiple dipoles or shifting view)
+ * - for (kr = 0.05f; kr <= 10.0f; kr += 0.05f); Radial extent and smoothness of each line.
+ *      - Decreasing the step smooths curves; increasing max kr extends them.
  *
- * This program uses a parameterized form of the integrated dipole field
- * equation to compute sin²(theta) as a function of radius (kr), phase (wt), and an integration constant (C).
- * Each value of C traces a distinct field line. As the phase advances (representing time), the field pattern evolves frame-by-frame.
+ * - Leave as-is unless modifying canvas layout (center coords of window)*:
+ *    xc = maxx / 2.0f;
+ *    yc = maxy / 2.0f;
+ *   (unless plotting multiple dipoles or shifting view)
  *
  * Controls:
  * - Press 's' or any key to step forward in phase frame (wt+=π/64).
@@ -33,30 +36,36 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int main() {
+// --- Tunable Parameters --- 
+const float deltaKr = 0.05f;          // Radial step size for kr
+const float maxKr     = 10.0f;        // Maximum value for kr
+const float deltaC    = 0.3f;         // Step size for integration constant C
+const float Cmin      = -0.15f;       // Minimum value for C
+const float Cmax      =  1.35f;       // Maximum value for C
+const float deltaWt   = M_PI / 64.0f; // Phase increment for each iteration
+// --------------------------
 
+int main() {
   int gdriver = DETECT, gmode;
   initgraph(&gdriver, &gmode, NULL);
 
   int maxx = getmaxx();
   int maxy = getmaxy();
-  float xc = maxx / 2.0f;
-  float yc = maxy / 2.0f;
-  float fr = yc / 11.0f; // HERE - Radial scaling
+  const float xc = maxx / 2.0f; //*
+  const float yc = maxy / 2.0f; //*
+  const float fr = yc / 11.0f;  // radial scaling factor of entire diagram
+
   float C, s2, kr, wt, x, y;
   char ch = ' ';
 
-  // Initialize phase
-  wt = 0.0f;
+  wt = 0.0f; //Represents phase angle
 
-  // draw one frame per phase value, then wait for a key press.
-  while (ch != 27) {  // 27 is ASCII for ESC
-    for (C = -0.15f; C <= 1.35f; C += 0.3f) {
-      for (kr = 0.05f; kr <= 10.0f; kr += 0.05f) {
+  while (ch != 27) {  // ESC
+    for (C = Cmin; C <= Cmax; C += deltaC) {
+      for (kr = deltaKr; kr <= maxKr; kr += deltaKr) {
         float denom = (sin(kr - wt) / kr - cos(kr - wt));
-        if (denom == 0) {
-          continue;  
-        }
+        if (denom == 0)
+          continue;
         s2 = fabs(C / denom);
         if (s2 <= 1) {
           x = fr * kr * sqrt(s2);
@@ -68,23 +77,19 @@ int main() {
         }
       }
     }
-
-    // Draw instructions in a box near the bottom of the screen:
     outtextxy(10, maxy - 30, (char*)"Press 's' for next iteration, 'ESC' to exit");
-
+    
     ch = getch();
-    if (ch == 27) { // EXIT!
+    if (ch == 27) { 
       break;
     }
-    wt += M_PI / 64;
-    if (wt >= 2 * M_PI) {
-      wt = 0;  // Wrap around after full cycle!
-    }
 
+    wt += deltaWt;
+    if (wt >= 2 * M_PI) {
+      wt = 0;  
+    }
     cleardevice();
   }
-
   closegraph();
   return 0;
 }
-
