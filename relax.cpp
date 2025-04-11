@@ -35,7 +35,7 @@
 
 // --- Tunable Parameters --- 
 // Graphics constants (adjust these to control spacing)!
-const int CELL_W = 35;    // width of each cell
+const int CELL_W = 32;    // width of each cell
 const int CELL_H = 15;    // height of each cell
 const int X_OFF  = 30;    // left margin offset (in pixels)
 const int Y_OFF  = 30;    // top margin offset (in pixels)

@@ -7,7 +7,7 @@
 Drawings of Field / Interference Patterns for Various charge distributions using SDL_bgi
 
 
-![cover](output-am2.png)
+![cover](dipole.png)
 
 
 ---  
