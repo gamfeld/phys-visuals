@@ -4,7 +4,7 @@
 
 #### Phys-Visualizations
 
-Drawings of Field / Interference Patterns for Various charge distributions using SDL_bgi
+Adaptations of Field / Interference Patterns for Various charge distributions using SDL_bgi
 
 
 ![cover](dipole.png)
